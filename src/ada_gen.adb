@@ -598,13 +598,6 @@ package body Ada_Gen is
 
    begin
       for F of Element.Fields loop
-         if not F.Comment.Is_Empty then
-            Dump (Comment => F.Comment,
-                  F       => File,
-                  Indent  => 2,
-                  Inline  => False);
-         end if;
-
          declare
             Id   : constant String := Get_Id (F);
             Line : constant String :=
@@ -638,6 +631,14 @@ package body Ada_Gen is
                  (File,
                   "pragma Volatile_Full_Access (" & To_String (F.Id) & ");");
             end if;
+            
+            if not F.Comment.Is_Empty then
+               Dump (Comment => F.Comment,
+                     F       => File,
+                     Indent  => 2,
+                     Inline  => False);
+            end if;
+            
          end;
       end loop;
    end Dump_Record_Fields;
