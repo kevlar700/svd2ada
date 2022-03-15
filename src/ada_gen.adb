@@ -778,12 +778,6 @@ package body Ada_Gen is
          Ada.Text_IO.Put_Line (File, "when " & To_String (Val.Id) & " =>");
 
          for F of Element.Disc_Fields (To_String (Val.Id)) loop
-            if not F.Comment.Is_Empty then
-               Dump (Comment => F.Comment,
-                     F       => File,
-                     Indent  => 4,
-                     Inline  => False);
-            end if;
             Ada.Text_IO.Put (File, (1 .. 4 * 3 => ' '));
             Ada.Text_IO.Put_Line
               (File, To_String (F.Id) & " : " &
@@ -794,6 +788,12 @@ package body Ada_Gen is
                Ada.Text_IO.Put_Line
                  (File,
                   "pragma Volatile_Full_Access (" & To_String (F.Id) & ");");
+            end if;
+            if not F.Comment.Is_Empty then
+               Dump (Comment => F.Comment,
+                     F       => File,
+                     Indent  => 4,
+                     Inline  => False);
             end if;
          end loop;
       end loop;
