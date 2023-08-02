@@ -18,6 +18,7 @@
 ------------------------------------------------------------------------------
 
 with Ada.Strings.Unbounded; use Ada.Strings.Unbounded;
+with Ada.Strings.Fixed;
 with Ada.Text_IO;           use Ada.Text_IO;
 with GNAT.OS_Lib;
 
@@ -322,18 +323,22 @@ package body Descriptors.Device is
             Interrupt_Vectors.Next (Curs);
          end loop;
 
-         Put
-           (ASM, ASCII.HT & ".word __gnat_irq_trap        /*" &
-              Integer'Image (J + 16) & " ");
          if Interrupt_Vectors.Element (Curs).Value = J then
-            Put_Line
+            Put
               (ASM,
+               ASCII.HT & ".word" & ASCII.HT &
                Ada.Strings.Unbounded.To_String
                  (Interrupt_Vectors.Element (Curs).Name) &
-                 " */");
+                 "_Handler");
+            Set_Col (ASM, 60);
+            Put (ASM, "/*" & Integer'Image (J) & " */");
+            New_line (ASM);
          else
-            Put_Line
-              (ASM, "IRQ" & Integer'Image (J) & ". */");
+            Put
+              (ASM, ASCII.HT & ".word" & ASCII.HT & "0");
+            Set_Col (ASM, 50);
+            Put (ASM, "/* Reserved:" & Integer'Image (J) & " */");
+            New_Line (ASM);
          end if;
       end loop;
 
@@ -342,6 +347,27 @@ package body Descriptors.Device is
       New_Line (ASM);
       --  Add weak symbols for the functions denoted by the Vector
       Dump_Stub ("__gnat_irq_trap");
+      Curs := Ints.First;
+      for J in 0 .. Ints.Last_Element.Value loop
+         while Interrupt_Vectors.Element (Curs).Value < J loop
+            Interrupt_Vectors.Next (Curs);
+         end loop;
+         Put
+            (ASM,
+            ".weak " &
+             Ada.Strings.Unbounded.To_String
+               (Interrupt_Vectors.Element (Curs).Name) &
+            "_Handler");
+         New_Line (ASM);
+         Put
+            (ASM,
+             ASCII.HT & ".thumb_set " &
+             Ada.Strings.Unbounded.To_String
+               (Interrupt_Vectors.Element (Curs).Name) &
+            "_Handler,__gnat_irq_trap");
+         New_Line (ASM);
+         New_Line (ASM);
+      end loop;
       Dump_Stub ("__gnat_sv_call_trap");
       Dump_Stub ("__gnat_pend_sv_trap");
       Dump_Stub ("__gnat_sys_tick_trap");
